@@ -1,0 +1,21 @@
+sudo: required
+services:
+  - docker
+before_install:
+  - docker build -t shaelraj/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run shaelraj/react-test npm test -- --coverage
+
+after_sucess:
+  - docker build -t shaelraj/multi-client ./client
+  - docker build -t shaelraj/multi-ngnix ./ngnix
+  - docker build -t shaelraj/multi-server ./server
+  - docker build -t shaelraj/multi-worker ./worker
+  # log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # take those images and push them to docker hub
+  - docker push shaelraj/multi-client
+  - docker push shaelraj/multi-ngnix
+  - docker push shaelraj/multi-server
+  - docker push shaelraj/multi-worker 
